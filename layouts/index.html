@@ -1,30 +1,320 @@
-<!DOCTYPE html>
-<html>
-	{{ partial "header.html" . }}
-	<body>
-		<div class="content">
-			{{ partial "head.html" . }}
-			
-			<main class="list">
-				<div class="site-description">
-					{{- if isset .Site.Params "subtitle" -}}
-					<p>{{ .Site.Params.Subtitle | .Page.RenderString }}</p>
-					{{- end -}}
-				</div>
-				{{ $pages := where .Site.RegularPages "Type" "in" .Site.Params.mainSections }}
-				{{ $paginator := .Paginate (where $pages "Params.hidden" "ne" true) }}
-				{{ range $paginator.Pages }}
-				<section class="list-item">
-					<h1 class="title"><a href="{{ .RelPermalink }}">{{.Title}}</a></h1>
-					<time>{{ dateFormat ":date_medium" .Date }}{{ if .Draft }} <span class="draft-label">DRAFT</span> {{ end }}</time>
-					<br>{{ template "partials/pagedescription.html" . }}
-					<a class="readmore" href="{{ .RelPermalink }}">Read more ⟶</a>
-				</section>
-				{{ end }}
-				{{ template "partials/paginator.html" . }}
-			</main>
-			{{ partial "footer.html" . }}
-		</div>
-		
-	</body>
-</html>
+{{ define "title" }}{{ .Site.Title }}{{ end }}
+
+{{ define "main" }}
+<div class="comic-home">
+    <!-- Comic Strip Hero -->
+    <section class="comic-hero">
+        <div class="comic-panels">
+            <div class="panel panel-1"></div>
+            <div class="panel panel-2"></div>
+            <div class="panel panel-3"></div>
+        </div>
+        <div class="hero-content">
+            {{ if .Site.Params.logo.text }}
+            <span class="belgium-flag">{{ .Site.Params.logo.text }}</span>
+            {{ end }}
+            <h1 class="challenger-title">{{ .Site.Params.logo.title | default .Site.Title }}</h1>
+            {{ if .Site.Params.logo.subtitle }}
+            <p class="comic-subtitle">💥 {{ .Site.Params.logo.subtitle }} 💥</p>
+            {{ end }}
+            <div class="speech-bubble">
+                <span class="bubble-text">POW!</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Triangular Card Grid -->
+    <section class="comic-news">
+        <h2 class="comic-header">💬 NEWS STRIP</h2>
+        {{ $posts := where .Site.RegularPages "Type" "posts" }}
+        <div class="triangle-grid">
+            {{ $counter := 0 }}
+            {{ range first 12 $posts.ByDate.Reverse }}
+            {{ $counter = add $counter 1 }}
+            {{ $class := "triangle-black" }}
+            {{ if eq (mod $counter 2) 1 }}{{ $class = "triangle-red" }}{{ end }}
+            <article class="comic-card">
+                <a href="{{ .Permalink }}" class="comic-link">
+                    <div class="card-frame">
+                        <div class="triangle-accent {{ $class }}"></div>
+                        {{ if and .Params.image (ne .Params.image "") }}
+                        <img src="{{ .Params.image | relURL }}" alt="{{ .Title }}" loading="lazy">
+                        {{ else if and .Params.images (gt (len .Params.images) 0) }}
+                        <img src="{{ index .Params.images 0 | relURL }}" alt="{{ .Title }}" loading="lazy">
+                        {{ else }}
+                        <div class="card-placeholder">{{ .Site.Params.logo.title | default .Site.Title }}</div>
+                        {{ end }}
+                        {{ if .Params.category }}
+                        <span class="card-category-badge">{{ .Params.category }}</span>
+                        {{ end }}
+                    </div>
+                    <div class="card-caption">
+                        <h3 class="comic-title">{{ .Title }}</h3>
+                        <span class="comic-date">{{ .Date.Format "02/01/2006" }}</span>
+                    </div>
+                </a>
+            </article>
+            {{ end }}
+        </div>
+    </section>
+</div>
+{{ end }}
+
+{{ define "styles" }}
+<style>
+    :root {
+        --belgium-black: #000000;
+        --belgium-yellow: #FDDA24;
+        --belgium-red: #EF3340;
+        --comic-white: #FFFFFF;
+        --panel-grey: #F5F5F5;
+        --ink-dark: #1A1A1A;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'Comic Sans MS', 'Chalkboard', sans-serif;
+        background: var(--panel-grey);
+        color: var(--ink-dark);
+        line-height: 1.6;
+    }
+
+    /* Comic Hero */
+    .comic-hero {
+        position: relative;
+        min-height: 480px;
+        background: var(--belgium-black);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .comic-panels {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        opacity: 0.15;
+    }
+
+    .panel {
+        border: 4px solid var(--belgium-yellow);
+        position: relative;
+    }
+
+    .panel::after {
+        content: '💥';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 60px;
+    }
+
+    .hero-content {
+        position: relative;
+        text-align: center;
+        z-index: 2;
+        padding: 40px;
+    }
+
+    .belgium-flag {
+        font-size: 56px;
+        display: block;
+        margin-bottom: 16px;
+    }
+
+    .challenger-title {
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--belgium-yellow);
+        text-shadow: 3px 3px 0 var(--belgium-red);
+        margin-bottom: 12px;
+        line-height: 1.2;
+        letter-spacing: 2px;
+    }
+
+    .comic-subtitle {
+        font-size: 18px;
+        color: var(--comic-white);
+        margin-bottom: 20px;
+    }
+
+    .speech-bubble {
+        display: inline-block;
+        background: var(--comic-white);
+        border-radius: 20px;
+        padding: 15px 30px;
+        position: relative;
+        box-shadow: 4px 4px 0 var(--belgium-red);
+    }
+
+    .speech-bubble::before {
+        content: '';
+        position: absolute;
+        bottom: -12px;
+        left: 30px;
+        border-width: 12px 12px 0;
+        border-style: solid;
+        border-color: var(--comic-white) transparent transparent;
+    }
+
+    .bubble-text {
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--belgium-red);
+        text-transform: uppercase;
+    }
+
+    /* Comic News */
+    .comic-news {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 60px 30px;
+    }
+
+    .comic-header {
+        text-align: center;
+        font-size: 38px;
+        font-weight: 900;
+        color: var(--belgium-black);
+        margin-bottom: 40px;
+        text-transform: uppercase;
+    }
+
+    .triangle-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 25px;
+    }
+
+    .comic-card {
+        background: var(--comic-white);
+        border: 4px solid var(--belgium-black);
+        border-radius: 4px;
+        overflow: hidden;
+        transition: transform 0.2s;
+        position: relative;
+    }
+
+    .comic-card:hover {
+        transform: scale(1.05) rotate(-1deg);
+    }
+
+    .comic-link {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .card-frame {
+        position: relative;
+        height: 160px;
+        overflow: hidden;
+        background: var(--belgium-yellow);
+    }
+
+    .triangle-accent {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 50px 50px 0;
+    }
+
+    .triangle-red {
+        border-color: transparent var(--belgium-red) transparent transparent;
+    }
+
+    .triangle-black {
+        border-color: transparent var(--belgium-black) transparent transparent;
+    }
+
+    .card-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .card-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--belgium-black);
+        font-size: 32px;
+        font-weight: 900;
+    }
+
+    .card-category-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: var(--belgium-black);
+        color: var(--belgium-yellow);
+        padding: 4px 10px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        z-index: 1;
+    }
+
+    .card-caption {
+        padding: 15px;
+        background:
+            linear-gradient(135deg, transparent 10px, var(--comic-white) 10px),
+            linear-gradient(45deg, var(--comic-white) 50%, transparent 50%);
+        background-size: 100% 100%, 20px 20px;
+    }
+
+    .comic-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink-dark);
+        margin-bottom: 8px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .comic-date {
+        display: inline-block;
+        background: var(--belgium-black);
+        color: var(--belgium-yellow);
+        padding: 4px 10px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .triangle-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .triangle-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .challenger-title {
+            font-size: 28px;
+        }
+    }
+</style>
+{{ end }}
+
+{{ define "scripts" }}
+{{ end }}

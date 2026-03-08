@@ -1,54 +1,426 @@
+{{ define "title" }}{{ .Title }} - {{ .Site.Title }}{{ end }}
+
 {{ define "main" }}
-<main>
-  <article>
-    <div class="post-container">
-      <!-- Main Content -->
-      <div class="post-content">
-        <div class="title">
-          <h1 class="title">{{ .Title }}</h1>
-          <div class="meta">Posted on {{ dateFormat ":date_medium" .Date }}{{ if .Draft }} <span class="draft-label">DRAFT</span> {{ end }}</div>
-        </div>
-        {{ if isset .Params "tldr" }}
-        <div class="tldr">
-          <strong>tl;dr:</strong>
-          {{ .Params.tldr }}
-        </div>{{ end }}
-        <section class="body">
-          {{ .Content }}
-        </section>
-        <div class="post-tags">
-          {{ if ne .Type "page" }}
-          {{ if gt .Params.tags 0 }}
-          <nav class="nav tags">
-            <ul class="tags">
-              {{ range .Params.tags }}
-              <li><a href="{{ "/tags/" | relLangURL }}{{ . | urlize }}/">{{ . }}</a></li>
-              {{ end }}
-            </ul>
-          </nav>
-          {{ end }}
-          {{ end }}
-        </div>
-      </div>
+<div class="sports-article">
+    <!-- Article Header -->
+    <header class="article-header">
+        <div class="header-pattern"></div>
+        <div class="header-content">
+            <!-- Breadcrumb -->
+            <nav class="breadcrumb">
+                <a href="/">Home</a>
+                <span class="sep">&rsaquo;</span>
+                <a href="/posts/">Posts</a>
+                <span class="sep">&rsaquo;</span>
+                <span class="current">{{ .Title }}</span>
+            </nav>
 
-      <!-- TOC -->
-      {{ if and (isset .Params "toc") (.Params.toc) }}
-      <div class="toc">
-        <strong>Table of contents:</strong>
-        {{ .TableOfContents }}
-      </div>
-      {{ end }}
-    </div>
+            <!-- Category -->
+            {{ if .Params.category }}
+            <div class="article-category">{{ .Params.category }}</div>
+            {{ end }}
 
-    <!-- Disqus -->
-    {{- $.Scratch.Set "isDisqus" true -}}
-    {{ if not .Site.Config.Services.Disqus.Shortname }}
-    {{- $.Scratch.Set "isDisqus" false -}}
+            <!-- Title -->
+            <h1 class="article-title">{{ .Title }}</h1>
+
+            <!-- Meta -->
+            <div class="article-meta">
+                <span class="meta-date">{{ .Date.Format "January 2, 2006" }}</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Article Content -->
+    <article class="article-container">
+        <div class="article-body">
+            {{ if .Description }}
+            <p class="article-lead">{{ .Description }}</p>
+            {{ end }}
+
+            <div class="article-content">
+                {{ .Content }}
+            </div>
+
+            <!-- Tags -->
+            {{ if .Params.tags }}
+            <div class="article-tags">
+                <span class="tags-label">Tags:</span>
+                <div class="tags-list">
+                    {{ range .Params.tags }}
+                    <a href="{{ "/tags/" | relLangURL }}{{ . | urlize }}/" class="tag-item">{{ . }}</a>
+                    {{ end }}
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </article>
+
+    <!-- Related Articles -->
+    {{ $related := .Site.RegularPages.Related . | first 6 }}
+    {{ if gt (len $related) 0 }}
+    <section class="related-section">
+        <div class="related-container">
+            <h2 class="related-title">Related Articles</h2>
+            <div class="related-grid">
+                {{ range $related }}
+                <a href="{{ .Permalink }}" class="related-card">
+                    <div class="related-image">
+                        {{ if and .Params.image (ne .Params.image "") }}
+                        <img src="{{ .Params.image | relURL }}" alt="{{ .Title }}" loading="lazy">
+                        {{ else if and .Params.images (gt (len .Params.images) 0) }}
+                        <img src="{{ index .Params.images 0 | relURL }}" alt="{{ .Title }}" loading="lazy">
+                        {{ else }}
+                        <div class="related-placeholder">{{ .Site.Params.logo.title | default .Site.Title }}</div>
+                        {{ end }}
+                    </div>
+                    <div class="related-info">
+                        <h4 class="related-title">{{ .Title }}</h4>
+                        <span class="related-date">{{ .Date.Format "Jan 02, 2006" }}</span>
+                    </div>
+                </a>
+                {{ end }}
+            </div>
+        </div>
+    </section>
     {{ end }}
+</div>
+{{ end }}
 
-    {{- if eq ($.Scratch.Get "isDisqus") true -}}
-    {{- partial "disqus.html" . -}}
-    {{- end -}}
-  </article>
-</main>
+{{ define "styles" }}
+<style>
+    .sports-article {
+        background: var(--background);
+    }
+
+    /* Article Header */
+    .article-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        position: relative;
+        padding: 60px 20px 80px;
+        overflow: hidden;
+    }
+
+    .header-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image:
+            repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(253, 218, 36, 0.05) 50px, rgba(253, 218, 36, 0.05) 51px),
+            repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(253, 218, 36, 0.05) 50px, rgba(253, 218, 36, 0.05) 51px);
+    }
+
+    .header-content {
+        position: relative;
+        max-width: 900px;
+        margin: 0 auto;
+        text-align: center;
+        z-index: 1;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 30px;
+        font-size: 14px;
+        flex-wrap: wrap;
+    }
+
+    .breadcrumb a {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+    .breadcrumb a:hover {
+        color: var(--secondary);
+    }
+
+    .breadcrumb .sep {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .breadcrumb .current {
+        color: var(--secondary);
+        font-weight: 600;
+    }
+
+    .article-category {
+        display: inline-block;
+        background: var(--secondary);
+        color: var(--primary);
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+    }
+
+    .article-title {
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--surface);
+        line-height: 1.2;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 0 rgba(253, 218, 36, 0.2);
+    }
+
+    .article-meta {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    /* Article Container */
+    .article-container {
+        max-width: 800px;
+        margin: -40px auto 60px;
+        position: relative;
+        z-index: 10;
+        padding: 0 20px;
+    }
+
+    .article-body {
+        background: var(--surface);
+        border-radius: 20px;
+        padding: 50px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .article-lead {
+        font-size: 20px;
+        font-weight: 500;
+        color: var(--primary);
+        line-height: 1.7;
+        margin-bottom: 30px;
+        padding-bottom: 25px;
+        border-bottom: 3px solid var(--secondary);
+    }
+
+    .article-content {
+        font-size: 17px;
+        line-height: 1.8;
+        color: var(--text);
+    }
+
+    .article-content h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 40px 0 20px;
+        padding-bottom: 12px;
+        border-bottom: 3px solid var(--secondary);
+    }
+
+    .article-content h3 {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--text);
+        margin: 32px 0 16px;
+    }
+
+    .article-content p {
+        margin-bottom: 20px;
+    }
+
+    .article-content blockquote {
+        border-left: 4px solid var(--secondary);
+        padding: 20px 25px;
+        margin: 30px 0;
+        background: var(--background);
+        border-radius: 0 12px 12px 0;
+        font-style: italic;
+    }
+
+    .article-content ul,
+    .article-content ol {
+        margin-bottom: 20px;
+        padding-left: 30px;
+    }
+
+    .article-content li {
+        margin-bottom: 10px;
+    }
+
+    .article-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin: 30px 0;
+    }
+
+    .article-content a {
+        color: var(--primary);
+        text-decoration: none;
+        border-bottom: 2px solid var(--secondary);
+        transition: all 0.3s;
+    }
+
+    .article-content a:hover {
+        color: var(--secondary);
+        border-color: var(--secondary);
+    }
+
+    /* Tags */
+    .article-tags {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 15px;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 1px solid var(--border);
+    }
+
+    .tags-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .tags-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .tag-item {
+        background: var(--background);
+        color: var(--text);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .tag-item:hover {
+        background: var(--secondary);
+        color: var(--primary);
+    }
+
+    /* Related Section */
+    .related-section {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 60px 20px;
+    }
+
+    .related-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .related-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 40px;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+    }
+
+    .related-card {
+        background: var(--surface);
+        border-radius: 16px;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .related-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .related-image {
+        height: 180px;
+        background: var(--primary);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .related-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .related-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary);
+        font-size: 36px;
+        font-weight: 900;
+    }
+
+    .related-info {
+        padding: 20px;
+    }
+
+    .related-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.4;
+        margin-bottom: 10px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .related-date {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .article-title {
+            font-size: 32px;
+        }
+
+        .article-body {
+            padding: 30px 25px;
+        }
+
+        .article-lead {
+            font-size: 18px;
+        }
+
+        .article-content {
+            font-size: 16px;
+        }
+
+        .article-content h2 {
+            font-size: 24px;
+        }
+
+        .related-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{{ end }}
+
+{{ define "scripts" }}
 {{ end }}

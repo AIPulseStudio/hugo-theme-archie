@@ -1,0 +1,47 @@
+baseURL = "http://localhost:1314/"
+languageCode = 'en-us'
+title = "Challenger Pro"
+#googleAnalytics = ''
+
+[module]
+[[module.mounts]]
+source = "content"
+target = "content"
+
+[[module.mounts]]
+source = "../layouts"
+target = "layouts"
+
+[[module.mounts]]
+source = "../static"
+target = "static"
+
+[params.logo]
+# Navigation logo (text/emoji or image path)
+navlogo = "⚽"
+# Hero section content
+text = "🇧🇪"
+title = "CHALLENGER PRO"
+subtitle = "Belgian Challenger Pro League"
+
+[params]
+description = "Challenger Pro League news and updates - Belgian Football Championship"
+keywords = "Challenger Pro League, Belgian football, soccer, Voetbal, België"
+
+[params.social]
+twitter = "https://twitter.com"
+youtube = "https://youtube.com"
+instagram = "https://instagram.com"
+facebook = "https://facebook.com"
+
+[menu]
+
+[[menu.main]]
+name = "Home"
+url = "/"
+weight = 1
+
+[[menu.main]]
+name = "Posts"
+url = "/posts/"
+weight = 2

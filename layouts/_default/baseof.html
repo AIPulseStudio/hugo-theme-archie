@@ -1,11 +1,306 @@
 <!DOCTYPE html>
-<html>
-    {{- partial "header.html" . -}}
-    <body>
-        <div class="content">
-        {{- partial "head.html" . -}}
-        {{- block "main" . }}{{- end }}
-        {{- partial "footer.html" . -}}
+<html lang="{{ .Site.Language.Lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ block "title" . }}{{ .Title }} - {{ .Site.Title }}{{ end }}</title>
+    <meta name="description" content="{{ if .Description }}{{ .Description }}{{ else }}{{ .Site.Params.description }}{{ end }}">
+    <meta name="keywords" content="{{ if .Params.keywords }}{{ .Params.keywords }}{{ else }}{{ .Site.Params.keywords }}{{ end }}">
+    <meta name="author" content="{{ .Site.Params.author }}">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="{{ .Title }}">
+    <meta property="og:description" content="{{ if .Description }}{{ .Description }}{{ else }}{{ .Site.Params.description }}{{ end }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ .Permalink }}">
+    {{ if .Params.images }}
+    <meta property="og:image" content="{{ index .Params.images 0 | absURL }}">
+    {{ else if .Params.image }}
+    <meta property="og:image" content="{{ .Params.image | absURL }}">
+    {{ end }}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ .Title }}">
+    <meta name="twitter:description" content="{{ if .Description }}{{ .Description }}{{ else }}{{ .Site.Params.description }}{{ end }}">
+
+    <link rel="canonical" href="{{ .Permalink }}">
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+
+    {{ block "styles" . }}{{ end }}
+
+    <!-- Google Analytics -->
+    {{ template "_internal/google_analytics.html" . }}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                {{ if .Site.Params.logo.navlogo }}
+                    {{ if or (hasPrefix .Site.Params.logo.navlogo "/") (hasPrefix .Site.Params.logo.navlogo "http") }}
+                    <img src="{{ .Site.Params.logo.navlogo | relURL }}" alt="{{ .Site.Title }}" class="logo-img">
+                    {{ else }}
+                    <span class="logo-icon">{{ .Site.Params.logo.navlogo }}</span>
+                    {{ end }}
+                {{ else }}
+                <span class="logo-icon">⚽</span>
+                {{ end }}
+                <span class="logo-name">{{ .Site.Params.logo.title | default .Site.Title }}</span>
+            </a>
+            <ul class="nav-menu">
+                {{ range .Site.Menus.main }}
+                <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+                {{ end }}
+            </ul>
         </div>
-    </body>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {{ block "main" . }}{{ end }}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Về Chúng Tôi</h3>
+                <ul>
+                    <li><a href="/about/">Giới Thiệu</a></li>
+                    <li><a href="/contact/">Liên Hệ</a></li>
+                    <li><a href="/privacy/">Chính Sách Bảo Mật</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Liên Kết</h3>
+                <ul>
+                    <li><a href="/posts/">Tin Tức</a></li>
+                    <li><a href="/categories/">Danh Mục</a></li>
+                    <li><a href="/tags/">Tags</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Theo Dõi</h3>
+                <div class="social-links">
+                    {{ if .Site.Params.social.twitter }}
+                    <a href="{{ .Site.Params.social.twitter }}" target="_blank" rel="noopener">Twitter</a>
+                    {{ end }}
+                    {{ if .Site.Params.social.youtube }}
+                    <a href="{{ .Site.Params.social.youtube }}" target="_blank" rel="noopener">YouTube</a>
+                    {{ end }}
+                    {{ if .Site.Params.social.instagram }}
+                    <a href="{{ .Site.Params.social.instagram }}" target="_blank" rel="noopener">Instagram</a>
+                    {{ end }}
+                    {{ if .Site.Params.social.facebook }}
+                    <a href="{{ .Site.Params.social.facebook }}" target="_blank" rel="noopener">Facebook</a>
+                    {{ end }}
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; {{ now.Year }} {{ .Site.Title }}. Tất cả quyền được bảo lưu.</p>
+        </div>
+    </footer>
+
+    {{ block "scripts" . }}{{ end }}
+
+    <!-- Global Styles for Navigation and Footer -->
+    <style>
+        :root {
+            --belgium-black: #000000;
+            --belgium-yellow: #FDDA24;
+            --belgium-red: #EF3340;
+            --comic-white: #FFFFFF;
+            --panel-grey: #F5F5F5;
+            --ink-dark: #1A1A1A;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            background: var(--panel-grey);
+            color: var(--ink-dark);
+        }
+
+        /* Navigation */
+        .navbar {
+            background: var(--comic-white);
+            border-bottom: 5px solid var(--belgium-black);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 70px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .logo-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--belgium-black);
+            text-transform: uppercase;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            margin-left: auto;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            padding: 10px 15px;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+            color: var(--ink-dark);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            border-radius: 4px;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background: var(--belgium-yellow);
+            border-color: var(--belgium-black);
+            color: var(--belgium-black);
+        }
+
+        /* Main */
+        main {
+            min-height: 60vh;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--belgium-black);
+            color: var(--comic-white);
+            padding: 50px 20px 20px;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+        }
+
+        .footer-section h3 {
+            color: var(--belgium-yellow);
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-section li {
+            margin-bottom: 12px;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--secondary);
+        }
+
+        .social-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .social-links a {
+            background: var(--belgium-yellow);
+            color: var(--belgium-black);
+            padding: 10px 18px;
+            border-radius: 6px;
+            border: 3px solid var(--belgium-black);
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .social-links a:hover {
+            background: var(--belgium-red);
+            color: var(--comic-white);
+        }
+
+        .footer-bottom {
+            max-width: 1400px;
+            margin: 40px auto 0;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .footer-bottom p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                height: auto;
+                padding: 15px;
+            }
+
+            .nav-menu {
+                margin-top: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+                margin-left: 0;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+    </style>
+</body>
 </html>
